@@ -1,3 +1,6 @@
+#Create a denoising autoencoder to remove noise from images.
+
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt

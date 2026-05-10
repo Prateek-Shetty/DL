@@ -1,3 +1,5 @@
+#Build a simple Sequential CNN model for classifying CIFAR-10.
+
 import tensorflow as tf
 from tensorflow.keras.datasets import mnist
 

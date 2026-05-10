@@ -1,3 +1,5 @@
+#Implement a simple GAN to generate images from random noise (e.g., MNIST digit generation).
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt

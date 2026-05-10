@@ -1,3 +1,5 @@
+#Explore a pretrained model (e.g., MobileNet) on a transfer learning task.
+
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
