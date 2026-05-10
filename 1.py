@@ -1,38 +1,48 @@
-#Perform basic tensor operations (like addition, multiplication) using Tensor Flow
-
 import tensorflow as tf
-import numpy as np
 
-tensor1 = tf.constant(np.random.randint(1, 10, (2, 2)), dtype=tf.float32)
+# Create tensors
+a = tf.constant([[1, 2], [3, 4]])
+b = tf.constant([[5, 6], [7, 8]])
 
-tensor2 = tf.constant([[-2, 4],[6, 8]], dtype=tf.float32)
+# Addition
+print(tf.add(a, b).numpy())
 
-print("Tensor 1:\n", tensor1.numpy())
-print("\nTensor 2:\n", tensor2.numpy())
+# Subtraction
+print(tf.subtract(a, b).numpy())
 
-print("\nAddition:\n", tf.add(tensor1, tensor2).numpy())
+# Multiplication
+print(tf.multiply(a, b).numpy())
 
-print("\nSubtraction:\n", tf.subtract(tensor1, tensor2).numpy())
+# Division
+print(tf.divide(a, b).numpy())
 
-print("\nMultiplication:\n", tf.multiply(tensor1, tensor2).numpy())
+# Square
+print(tf.square(a).numpy())
 
-print("\nDivision:\n", tf.divide(tensor1, tensor2).numpy())
+# Broadcasting
+print((a + 5).numpy())
 
-print("\nSquare:\n", tf.square(tensor1).numpy())
+# Reshape
+print(tf.reshape(a, (4,1)).numpy())
 
-print("\nBroadcasting (+5):\n", (tensor1 + 5).numpy())
+# Concatenate
+print(tf.concat([a, b], axis=0).numpy())
 
-print("\nReshape:\n", tf.reshape(tensor1, (4, 1)).numpy())
+# Maximum
+print(tf.maximum(a, b).numpy())
 
-print("\nConcatenation:\n", tf.concat([tensor1, tensor2], axis=0).numpy())
+# Minimum
+print(tf.minimum(a, b).numpy())
 
-print("\nMaximum:\n", tf.maximum(tensor1, tensor2).numpy())
+# Absolute value
+c = tf.constant([[-1, -2], [3, -4]])
 
-print("\nMinimum:\n", tf.minimum(tensor1, tensor2).numpy())
+print(tf.abs(c).numpy())
 
-print("\nAbsolute Value:\n",
-      tf.abs(tensor2).numpy())
+# Logarithm
+d = tf.constant([[1.0, 2.0], [3.0, 4.0]])
 
-print("\nLogarithm:\n", tf.math.log(tensor2).numpy())
+print(tf.math.log(d).numpy())
 
-print("\nExponential:\n", tf.exp(tensor2).numpy())
+# Exponential
+print(tf.exp(d).numpy())
