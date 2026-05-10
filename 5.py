@@ -1,43 +1,117 @@
-#Explore a pretrained model (e.g., MobileNet) on a transfer learning task.
+# Transfer Learning using Fashion MNIST
 
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
+from tensorflow.keras.datasets import fashion_mnist
 
 # Load dataset
-(X_train, y_train), (X_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
-X_train, X_test = X_train/255.0, X_test/255.0
+(X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
 
-# Select 2 classes: Pullover(2) and T-shirt(0)
-mask = (y_train==0) | (y_train==2)
+# Normalize data
+X_train = X_train / 255.0
+X_test = X_test / 255.0
 
-X2, y2 = X_train[mask], y_train[mask]
-y2 = (y2==2).astype(int)
 
-# Split data
-Xtr, Xval, ytr, yval = train_test_split(X2, y2, test_size=0.2)
+# Create pretrained model
 
-# Pretrained model
-base_model = tf.keras.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28,28)),
-    tf.keras.layers.Dense(100, activation='relu'),
-    tf.keras.layers.Dense(100, activation='relu')
+pretrained_model = tf.keras.Sequential([
+
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+
+    tf.keras.layers.Dense(128, activation='relu'),
+
+    tf.keras.layers.Dense(64, activation='relu'),
+
+    tf.keras.layers.Dense(10, activation='softmax')
+
 ])
 
-# Add output layer
-model = tf.keras.Sequential([
-    base_model,
-    tf.keras.layers.Dense(1, activation='sigmoid')
-])
+# Compile pretrained model
 
-# Freeze pretrained layers
-base_model.trainable = False
+pretrained_model.compile(
 
-# Compile and train
-model.compile(optimizer='adam',
-              loss='binary_crossentropy',
-              metrics=['accuracy'])
+    optimizer='adam',
 
-model.fit(Xtr, ytr, epochs=5, validation_data=(Xval,yval))
+    loss='sparse_categorical_crossentropy',
 
-# Evaluate
-model.evaluate(Xval, yval)
+    metrics=['accuracy']
+
+)
+
+# Train pretrained model
+
+pretrained_model.fit(
+
+    X_train,
+    y_train,
+
+    epochs=5
+
+)
+
+# Save pretrained model
+
+pretrained_model.save("pretrained_model.keras")
+
+
+# Load pretrained model
+
+model = tf.keras.models.load_model("pretrained_model.keras")
+
+
+# Remove output layer
+
+model.pop()
+
+
+# Add new output layer
+
+model.add(
+
+    tf.keras.layers.Dense(
+        2,
+        activation='softmax'
+    )
+
+)
+
+
+# Freeze previous layers
+
+for layer in model.layers[:-1]:
+
+    layer.trainable = False
+
+
+# Compile transfer learning model
+
+model.compile(
+
+    optimizer='adam',
+
+    loss='sparse_categorical_crossentropy',
+
+    metrics=['accuracy']
+
+)
+
+
+# Train model again
+
+model.fit(
+
+    X_train,
+    y_train,
+
+    epochs=3
+
+)
+
+
+# Evaluate model
+
+model.evaluate(
+
+    X_test,
+    y_test
+
+)
