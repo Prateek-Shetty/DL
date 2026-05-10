@@ -1,68 +1,41 @@
-#Explore a pretrained model (e.g., MobileNet) on a transfer learning task.
-
 import tensorflow as tf
-from tensorflow.keras.applications import MobileNetV2
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.model_selection import train_test_split
 
-# Dataset paths
-train_path = "dataset/train"
-test_path = "dataset/test"
+# Load dataset
+(X_train, y_train), (X_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
+X_train, X_test = X_train/255.0, X_test/255.0
 
-# Image preprocessing
-train_data = ImageDataGenerator(rescale=1./255)
+# Select 2 classes: Pullover(2) and T-shirt(0)
+mask = (y_train==0) | (y_train==2)
 
-test_data = ImageDataGenerator(rescale=1./255)
+X2, y2 = X_train[mask], y_train[mask]
+y2 = (y2==2).astype(int)
 
-# Load images
-train = train_data.flow_from_directory(
-    train_path,
-    target_size=(224,224),
-    batch_size=32,
-    class_mode='categorical'
-)
+# Split data
+Xtr, Xval, ytr, yval = train_test_split(X2, y2, test_size=0.2)
 
-test = test_data.flow_from_directory(
-    test_path,
-    target_size=(224,224),
-    batch_size=32,
-    class_mode='categorical'
-)
+# Pretrained model
+base_model = tf.keras.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28,28)),
+    tf.keras.layers.Dense(100, activation='relu'),
+    tf.keras.layers.Dense(100, activation='relu')
+])
 
-# Load pretrained MobileNetV2
-base_model = MobileNetV2(
-    weights='imagenet',
-    include_top=False,
-    input_shape=(224,224,3)
-)
+# Add output layer
+model = tf.keras.Sequential([
+    base_model,
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
 
 # Freeze pretrained layers
 base_model.trainable = False
 
-# Build transfer learning model
-model = Sequential([
-    base_model,
-    Flatten(),
-    Dense(128, activation='relu'),
-    Dense(train.num_classes, activation='softmax')
-])
+# Compile and train
+model.compile(optimizer='adam',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
 
-# Compile model
-model.compile(
-    optimizer='adam',
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
+model.fit(Xtr, ytr, epochs=5, validation_data=(Xval,yval))
 
-# Train model
-model.fit(
-    train,
-    epochs=5,
-    validation_data=test
-)
-
-# Evaluate model
-loss, acc = model.evaluate(test)
-
-print("Accuracy:", acc)
+# Evaluate
+model.evaluate(Xval, yval)

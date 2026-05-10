@@ -1,69 +1,42 @@
-#Fine-tune a pretrained model like ResNet50 or EfficientNet on a custom dataset
-
-
 import tensorflow as tf
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.models import Sequential
+import os
 
-# Dataset folders
-train_path = "dataset/train"
-test_path = "dataset/test"
+# Dataset path
+train_dir = "dataset/train"
+val_dir = "dataset/val"
 
-# Image preprocessing
-train_data = ImageDataGenerator(rescale=1./255)
-
-test_data = ImageDataGenerator(rescale=1./255)
-
-train = train_data.flow_from_directory(
-    train_path,
-    target_size=(224,224),
-    batch_size=32,
-    class_mode='categorical'
+# Image generators
+train_data = ImageDataGenerator(rescale=1./255).flow_from_directory(
+    train_dir, target_size=(224,224), batch_size=32, class_mode='categorical'
 )
 
-test = test_data.flow_from_directory(
-    test_path,
-    target_size=(224,224),
-    batch_size=32,
-    class_mode='categorical'
+val_data = ImageDataGenerator(rescale=1./255).flow_from_directory(
+    val_dir, target_size=(224,224), batch_size=32, class_mode='categorical'
 )
 
-# Load pretrained ResNet50 model
-base_model = ResNet50(
-    weights='imagenet',
-    include_top=False,
-    input_shape=(224,224,3)
-)
-
-# Freeze pretrained layers
-for layer in base_model.layers:
-    layer.trainable = False
+# Load pretrained ResNet50
+base = ResNet50(weights='imagenet', include_top=False, input_shape=(224,224,3))
+base.trainable = False
 
 # Build model
 model = Sequential([
-    base_model,
-    Flatten(),
+    base,
+    GlobalAveragePooling2D(),
     Dense(128, activation='relu'),
-    Dense(train.num_classes, activation='softmax')
+    Dense(len(os.listdir(train_dir)), activation='softmax')
 ])
 
-# Compile model
-model.compile(
-    optimizer='adam',
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
+# Compile
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
 
-# Train model
-model.fit(
-    train,
-    epochs=5,
-    validation_data=test
-)
+# Train
+model.fit(train_data, validation_data=val_data, epochs=5)
 
-# Evaluate
-loss, acc = model.evaluate(test)
-
-print("Test Accuracy:", acc)
+# Save model
+model.save("model.h5")

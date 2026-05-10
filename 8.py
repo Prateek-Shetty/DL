@@ -1,47 +1,46 @@
-#Build an LSTM-based model for time-series forecasting or text generation.
-
-
+import tensorflow as tf
 import numpy as np
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
 
-# Time series data
-data = [1,2,3,4,5,6,7,8,9,10]
+# Load text
+text = open("shakespeare.txt").read().lower()
 
-X = []
-y = []
+# Character mapping
+chars = sorted(set(text))
+c2i = {c:i for i,c in enumerate(chars)}
+i2c = {i:c for i,c in enumerate(chars)}
 
 # Create sequences
-for i in range(len(data)-3):
-    X.append(data[i:i+3])
-    y.append(data[i+3])
+seq_len = 50
+X, y = [], []
 
-X = np.array(X)
+for i in range(len(text)-seq_len):
+    X.append([c2i[c] for c in text[i:i+seq_len]])
+    y.append(c2i[text[i+seq_len]])
+
+X = np.array(X).reshape(-1, seq_len, 1) / len(chars)
 y = np.array(y)
 
-# Reshape for LSTM
-X = X.reshape((X.shape[0], X.shape[1], 1))
-
-# Build LSTM model
-model = Sequential([
-
-    LSTM(50, input_shape=(3,1)),
-    Dense(1)
+# Build model
+model = tf.keras.Sequential([
+    tf.keras.layers.LSTM(64),
+    tf.keras.layers.Dense(len(chars), activation='softmax')
 ])
 
-# Compile model
-model.compile(
-    optimizer='adam',
-    loss='mse'
-)
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy')
 
-# Train model
-model.fit(X, y, epochs=200, verbose=0)
+# Train
+model.fit(X, y, epochs=10, batch_size=64)
 
-# Predict next value
-test = np.array([[8,9,10]])
-test = test.reshape((1,3,1))
+# Generate text
+seed = "shall i compare thee "
+generated = seed
 
-prediction = model.predict(test)
+for _ in range(100):
+    x = np.array([[c2i[c] for c in generated[-seq_len:]]])
+    x = x.reshape(1, seq_len, 1) / len(chars)
 
-print("Predicted value:", prediction[0][0])
+    pred = np.argmax(model.predict(x, verbose=0))
+    generated += i2c[pred]
+
+print(generated)

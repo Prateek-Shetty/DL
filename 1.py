@@ -5,8 +5,7 @@ import numpy as np
 
 tensor1 = tf.constant(np.random.randint(1, 10, (2, 2)), dtype=tf.float32)
 
-tensor2 = tf.constant([[-2, 4],
-                       [6, 8]], dtype=tf.float32)
+tensor2 = tf.constant([[-2, 4],[6, 8]], dtype=tf.float32)
 
 print("Tensor 1:\n", tensor1.numpy())
 print("\nTensor 2:\n", tensor2.numpy())

@@ -1,47 +1,32 @@
-#Implement a basic RNN for sequence prediction.
-
-
 import numpy as np
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import SimpleRNN, Dense
 
-# Sequence data
-data = [1,2,3,4,5,6,7,8,9,10]
+# Generate sine wave
+data = np.sin(np.linspace(0, 50, 100))
 
-X = []
-y = []
+# Prepare dataset
+X, y = [], []
+for i in range(90):
+    X.append(data[i:i+10])
+    y.append(data[i+10])
 
-# Create sequences
-for i in range(len(data)-3):
-    X.append(data[i:i+3])
-    y.append(data[i+3])
-
-X = np.array(X)
+X = np.array(X).reshape(90, 10, 1)
 y = np.array(y)
 
-# Reshape for RNN
-X = X.reshape((X.shape[0], X.shape[1], 1))
-
-# Build RNN model
+# Build model
 model = Sequential([
-
-    SimpleRNN(10, input_shape=(3,1)),
+    SimpleRNN(10, activation='relu', input_shape=(10,1)),
     Dense(1)
 ])
 
-# Compile model
-model.compile(
-    optimizer='adam',
-    loss='mse'
-)
+model.compile(optimizer='adam', loss='mse')
 
-# Train model
-model.fit(X, y, epochs=200, verbose=0)
+# Train
+model.fit(X, y, epochs=50, verbose=0)
 
-# Predict next value
-test = np.array([[8,9,10]])
-test = test.reshape((1,3,1))
+# Predict
+pred = model.predict(X)
 
-prediction = model.predict(test)
-
-print("Predicted value:", prediction[0][0])
+print("Actual:", y[:5])
+print("Predicted:", pred[:5].flatten())
